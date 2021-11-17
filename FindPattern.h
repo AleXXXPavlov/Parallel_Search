@@ -1,0 +1,10 @@
+#ifndef PARALLEL_SEARCH_FINDPATTERN_H
+#define PARALLEL_SEARCH_FINDPATTERN_H
+
+
+class FindPattern {
+
+};
+
+
+#endif //PARALLEL_SEARCH_FINDPATTERN_H
