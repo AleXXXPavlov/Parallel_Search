@@ -3,6 +3,8 @@
 #include <dirent.h>
 #include <thread>
 #include <algorithm>
+#include <fstream>
+
 
 #include "SearchEngine.h"
 
@@ -95,11 +97,22 @@ void SearchEngine::thread_working(const SearchEngine& se, size_t begin, size_t e
 
 
 std::vector<FindPattern> SearchEngine::SearchInFile(const std::string& fileName) {
-    return std::vector<FindPattern>();
+    std::vector<FindPattern> curr_result;                                   // найденный pattern-ы в текущем файле
+
+    std::string curr_line;                                                  // текущая строка
+    std::ifstream file(fileName);
+
+    while (getline(file, curr_line)) {
+
+
+    }
+    file.close();
+
+
 }
 
 std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles(const std::string & root, bool is_deeper) {
-    std::vector<std::pair<std::string, size_t>> all_files;                  // результат
+    std::vector<std::pair<std::string, size_t>> all_files_;                 // результат
     std::deque<std::string> dirs;                                           // заводим очередь с папк-ой / -ами
 
     dirs.push_back(root);
@@ -116,7 +129,7 @@ std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles(const std:
                 std::string dir_elem_name = curr_dir_name + "/" + dir_elem->d_name;         // имя текущего элемента директории
                 if (dir_elem->d_type == DT_DIR) dirs.emplace_back(curr_dir_name);           // если элемент - папка
                 else if (dir_elem->d_type == DT_REG) {                                      // если элемент - обычный файл
-                    all_files.emplace_back(curr_dir_name, std::filesystem::file_size(curr_dir_name));
+                    all_files_.emplace_back(curr_dir_name, std::filesystem::file_size(curr_dir_name));
                 }
             }
         }
@@ -124,7 +137,7 @@ std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles(const std:
             for (dirent* dir_elem = readdir(curr_dir); dir_elem; dir_elem = readdir(curr_dir)) {
                 std::string dir_elem_name = curr_dir_name + "/" + dir_elem->d_name;         // имя текущего элемента директории
                 if (dir_elem->d_type == DT_REG) {                                           // если элемент - обычный файл
-                    all_files.emplace_back(curr_dir_name, std::filesystem::file_size(curr_dir_name));
+                    all_files_.emplace_back(curr_dir_name, std::filesystem::file_size(curr_dir_name));
                 }
             }
         }
@@ -132,7 +145,20 @@ std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles(const std:
         closedir(curr_dir);
     }
 
-    std::sort(all_files.begin(), all_files.end(), FilesCmp);                                // сортируем по-возрастанию значения
-    return all_files;
+    std::sort(all_files_.begin(), all_files_.end(), FilesCmp);                                // сортируем по-возрастанию значения
+    return all_files_;
+}
+
+std::vector<int> SearchEngine::prefixFunction(std::string &pr_line) {
+    size_t len = pr_line.length();
+    std::vector<int> pi(len);                                                                   // результат префикс-функции
+    for (int i = 1; i < len; ++i) {
+        int j = pi[i - 1];
+        while (j > 0 && pr_line[i] != pr_line[j]) j = pi[j - 1];
+        if (pr_line[i] == pr_line[j]) ++j;
+        pi[i] = j;
+    }
+
+    return pi;
 }
 

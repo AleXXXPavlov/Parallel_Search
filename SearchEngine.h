@@ -28,6 +28,8 @@ private:
     std::vector<std::pair<size_t, size_t>> take_bolds(int);                       // распределение потоков
     static std::vector<FindPattern> SearchInFile(const std::string&);             // поиск в конкретном файле
 
+    static std::vector<int> prefixFunction(std::string& pr_line) ;                  // префикс-функция к строкам из файла
+
 public:
     friend class Arguments;
     friend class FindPattern;
