@@ -53,10 +53,26 @@ SearchEngine::SearchEngine(const Arguments &arguments) {
 
 
 std::vector<std::pair<size_t, size_t>> SearchEngine::take_bolds(int threads) {
-    std::vector<std::pair<size_t, size_t>> threads_se(threads);
+    std::vector<std::pair<size_t, size_t>> threads_se(threads);             // старт - конец номеров считывания файлов потока
 
+    size_t sum = 0;                                                         // подсчет размера всех файлов
+    for (const auto& file_pair: all_files) sum += file_pair.second;
+    size_t avg = sum / threads;                                             // узнаем среднее значение
 
+    size_t file_i = 0;                                                      // индекс текущего файла
+    for (size_t thread_i = 0; ; thread_i < threads - 1; ++thread_i) {
+        threads_se[thread_i].first = file_i;                                // начало рассмотрения текущего потока
 
+        size_t curr_size = 0;                                               // размер файлов, обрабатываемых потоком
+        for (; curr_size + all_files[file_i].second <= avg && file_i < all_files.size(); ++file_i) {
+            curr_size += all_files[file_i].second;
+        }
+
+        threads_se[thread_i].second = file_i;                               // индекс конца, нерассматриваемый потоком
+    }
+
+    // последний поток обрабатываем отдельно -> отдаем на обработку оставшиееся файлы
+    threads_se[threads - 1] = std::make_pair(file_i, all_files.size());
 
     return threads_se;
 }
