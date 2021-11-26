@@ -4,7 +4,12 @@
 #include <string>
 #include <filesystem>
 #include <iostream>
-#include "SearchEngine.h"
+
+
+enum {
+    OK,                             // исправная работа программы
+    INVALID_ARGUMENTS,              // неправильные аргументов командной строки
+};
 
 
 /*
@@ -12,15 +17,14 @@
  */
 class Arguments {
 public:
-    const int threads = 1;                                                            // количество потоков работы поиска
-    mutable std::string root = std::filesystem::current_path().root_name();           // имя корневого каталога
-    mutable std::string pattern;                                                      // строка, которую требуется найти
-    const bool is_deeper = true;                                    // false - только текущей директория, true - поиск вглубь
+    int threads = 1;                                                            // количество потоков работы поиска
+    std::string root = std::filesystem::current_path().root_name();           // имя корневого каталога
+    std::string pattern;                                                      // строка, которую требуется найти
+    bool is_deeper = true;                                    // false - только текущей директория, true - поиск вглубь
 
-    Arguments() = default;
-    Arguments(int, std::string, std::string, bool);
+    explicit Arguments(int, char**);                    // парсинг аргументов командной строки
 
-    static Arguments parse_command(int, char**);                    // парсинг аргументов командной строки
+    friend std::ostream& operator<< (std::ostream& out, const Arguments&);
 };
 
 

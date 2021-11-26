@@ -1,30 +1,27 @@
 #include "Arguments.h"
 
 
-// конструктор с параметрами
-Arguments::Arguments(int threads, std::string root, std::string pattern, bool is_deeper) :
-    threads(threads), root(std::move(root)), pattern(std::move(pattern)), is_deeper(is_deeper) {}
-
+// вывод аргументов для проверки правильности парсинга
+std::ostream &operator<<(std::ostream &out, const Arguments& args) {
+    out << "Директория: " << args.root << "\n";
+    out << "Паттерн: " << args.pattern << "\n";
+    out << "Количество потоков для поиска: " << args.threads << "\n";
+    out << "Нужно ли искать вглубь? - " << (args.is_deeper ? "Да" : "Нет") << "\n";
+    return out;
+}
 
 // парсинг командной строки
-Arguments Arguments::parse_command(int argc, char **argv) {
+Arguments::Arguments(int argc, char **argv) {
     // проверка на количество
-    if (argc > 5) {
+    if (argc > 6) {
         std::cerr << "Oooops...you have too many args. Seriously???\n";
-        return {};
     }
 
-    // хранение значений аргументов
-    int threads = 1;                                        // по-умолчанию, если -t# не будет в аргументах
-    bool is_deeper = true;                                  // по-умолчанию, если -n не будет в аргументах
-    std::string root = std::filesystem::current_path().root_name();
-    std::string pattern = std::string("");
-
     // распределяем значения
-    // не рассматриваем 0-й аргумент - ./psearch
+    // не рассматриваем 1-й аргумент - ./psearch
     // -t# и -n произвольное расположение - проверка в первую очередь
     // порядок ./psearch FILE DIR
-    for (size_t i = 1; i < argc; ++i) {
+    for (size_t i = 2; i < argc; ++i) {
         std::string curr_arg = argv[i];
 
         if (curr_arg.substr(0, 2) == "-n") {
@@ -41,7 +38,7 @@ Arguments Arguments::parse_command(int argc, char **argv) {
 
             continue;
         }
-        if (curr_arg.empty()) {
+        if (pattern.empty()) {
             pattern = curr_arg;
             continue;
         }
@@ -54,16 +51,12 @@ Arguments Arguments::parse_command(int argc, char **argv) {
     // проверка на пустоту строки
     if (pattern.empty()) {
         std::cerr << "An empty search string\n";
-        return {};
     }
 
     // проверка директории на существование
     if (!root.empty()) {
         if (!std::filesystem::exists(root)) {
             std::cerr << "Directory not exists\n";
-            return {};
         }
     }
-
-    return {threads, root, pattern, is_deeper};
 }

@@ -25,8 +25,7 @@ bool FilesCmp(std::pair<std::string, size_t>& file1, std::pair<std::string, size
 
 
 int SearchEngine::start(int argc, char **argv) {
-    Arguments arguments = Arguments::parse_command(argc, argv);
-    // проверка на получение непустого pattern-а
+    Arguments arguments(argc, argv);
     if (arguments.pattern.empty()) {
         return INVALID_ARGUMENTS;
     }
@@ -105,14 +104,16 @@ std::vector<FindPattern> SearchEngine::SearchInFile(const std::string& fileName,
     std::string curr_line;                                                  // текущая строка
     std::ifstream file(fileName);
 
-    for (size_t line_num = 0; getline(file, curr_line); ++line_num) {
+    // считываем файл построчно и обрабатываем каждую строку с префикс-функцией
+    for (int line_num = 0; getline(file, curr_line); ++line_num) {
         std::string curr_prefix_line = patt + "#";
         curr_prefix_line.append(curr_line);
         std::vector<int> prefix_result = prefixFunction(curr_prefix_line);
 
         for (size_t i = patt.length() + 1; i < prefix_result.size(); ++i) {
             if (prefix_result[i] == patt.length()) {
-                curr_result.emplace_back(fileName, line_num, curr_line);
+                curr_result.push_back({fileName, line_num, curr_line});
+                continue;
             }
         }
     }
@@ -121,7 +122,7 @@ std::vector<FindPattern> SearchEngine::SearchInFile(const std::string& fileName,
     return curr_result;
 }
 
-std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles() {
+std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles() const {
     std::vector<std::pair<std::string, size_t>> all_files_;                 // результат
     std::deque<std::string> dirs;                                           // заводим очередь с папк-ой / -ами
 
@@ -137,21 +138,20 @@ std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles() {
         if (arguments.is_deeper) {
             for (dirent* dir_elem = readdir(curr_dir); dir_elem; dir_elem = readdir(curr_dir)) {
                 std::string dir_elem_name = curr_dir_name + "/" + dir_elem->d_name;         // имя текущего элемента директории
-                if (dir_elem->d_type == DT_DIR) dirs.emplace_back(curr_dir_name);           // если элемент - папка
-                else if (dir_elem->d_type == DT_REG) {                                      // если элемент - обычный файл
-                    all_files_.emplace_back(curr_dir_name, std::filesystem::file_size(curr_dir_name));
+                if (dir_elem->d_type == DT_DIR) dirs.emplace_back(dir_elem_name);           // если элемент - папка
+                else {                                      // если элемент - обычный файл
+                    all_files_.emplace_back(dir_elem_name, std::filesystem::file_size(dir_elem_name));
                 }
             }
         }
         else {
             for (dirent* dir_elem = readdir(curr_dir); dir_elem; dir_elem = readdir(curr_dir)) {
                 std::string dir_elem_name = curr_dir_name + "/" + dir_elem->d_name;         // имя текущего элемента директории
-                if (dir_elem->d_type == DT_REG) {                                           // если элемент - обычный файл
-                    all_files_.emplace_back(curr_dir_name, std::filesystem::file_size(curr_dir_name));
+                if (dir_elem->d_type != DT_DIR) {                                           // если элемент - обычный файл
+                    all_files_.emplace_back(dir_elem_name, std::filesystem::file_size(dir_elem_name));
                 }
             }
         }
-
         closedir(curr_dir);
     }
 
