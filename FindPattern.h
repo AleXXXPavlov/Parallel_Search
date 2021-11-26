@@ -3,11 +3,13 @@
 
 #include <string>
 
+
+//! Результат работы поискового движка
 class FindPattern {
 public:
-    std::string fileName;                                              // имя файла
+    std::string fileName;                                         // имя файла
     int lineNum;                                                  // номер искомой строки
-    std::string line;                                                  // искомая строка
+    std::string line;                                             // искомая строка
 
     friend std::ostream& operator<< (std::ostream&, const FindPattern&);   // переопределенный оператор вывода
 };

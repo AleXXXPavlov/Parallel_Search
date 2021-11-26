@@ -2,7 +2,11 @@
 #include <utility>
 #include <ostream>
 
-// переопределяем оператор вывода
+
+//! Переопределенный вывод результата работы поиского движка
+//! \param out поток вывода
+//! \param result объект-результат поиска
+//! \return поток вывода
 std::ostream &operator<<(std::ostream & out, const FindPattern &result) {
     if (result.lineNum == -1) {
         out << "Sorry, but this pattern doesn't exist in such directory.\n";

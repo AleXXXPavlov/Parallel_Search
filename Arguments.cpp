@@ -1,7 +1,10 @@
 #include "Arguments.h"
 
 
-// вывод аргументов для проверки правильности парсинга
+//! Вывод аргументов для проверки корректности парсинга
+//! \param out поток вывода
+//! \param args объект из аргументов командной строки
+//! \return поток вывода
 std::ostream &operator<<(std::ostream &out, const Arguments& args) {
     out << "Директория: " << args.root << "\n";
     out << "Паттерн: " << args.pattern << "\n";
@@ -10,7 +13,10 @@ std::ostream &operator<<(std::ostream &out, const Arguments& args) {
     return out;
 }
 
-// парсинг командной строки
+
+//! Парсинг аргументов командной строки - конструктор с параметрами
+//! \param argc
+//! \param argv
 Arguments::Arguments(int argc, char **argv) {
     // проверка на количество
     if (argc > 6) {

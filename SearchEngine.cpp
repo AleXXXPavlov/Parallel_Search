@@ -10,20 +10,20 @@
 #include "SearchEngine.h"
 
 
-/*
- * Add Functions
- */
 
+//! Сортировка файлов по размеру в порядке убывания
+//! \param file1
+//! \param file2
+//! \return
 bool FilesCmp(std::pair<std::string, size_t>& file1, std::pair<std::string, size_t>& file2) {
     return file1.second > file2.second;
 }
 
 
-/*
- * Main Functions
- */
-
-
+//! Последовательная работы поиску pattern-а в указанном месте
+//! \param argc
+//! \param argv
+//! \return
 int SearchEngine::start(int argc, char **argv) {
     Arguments arguments(argc, argv);
     if (arguments.pattern.empty()) {
@@ -49,18 +49,22 @@ int SearchEngine::start(int argc, char **argv) {
 }
 
 
+//! Конструктор с параметрами
+//! \param arguments спарсенные аргументы командной строки
 SearchEngine::SearchEngine(Arguments arguments) :
     arguments(std::move(arguments)) {
     all_files = getAllFiles();
 }
 
 
+//! Получение границ индексов start-а и end-а файлов для каждого из потоков для поиска в них
+//! \return (start, end) для каждого потока
 std::vector<std::pair<size_t, size_t>> SearchEngine::take_bolds() {
-    std::vector<std::pair<size_t, size_t>> threads_se(arguments.threads);             // старт - конец номеров считывания файлов потока
+    std::vector<std::pair<size_t, size_t>> threads_se(arguments.threads);   // старт - конец номеров считывания файлов потока
 
     size_t sum = 0;                                                         // подсчет размера всех файлов
     for (const auto& file_pair: all_files) sum += file_pair.second;
-    size_t avg = sum / arguments.threads;                                             // узнаем среднее значение
+    size_t avg = sum / arguments.threads;                                   // узнаем среднее значение
 
     size_t file_i = 0;                                                      // индекс текущего файла
     size_t thread_i = 0;
@@ -82,6 +86,10 @@ std::vector<std::pair<size_t, size_t>> SearchEngine::take_bolds() {
 }
 
 
+//! Работа одного потока, осуществляющая поиск в заданной области
+//! \param se поисковый движок, с которым происходит взаимодействие
+//! \param begin старт индекса рассматриваемых файлов
+//! \param end конец индекса рассматриваемых файлов
 void SearchEngine::thread_working(const SearchEngine& se, size_t begin, size_t end) {
     std::vector<FindPattern> all_results;                                   // найденные объекты c файлов от begin до end
 
@@ -98,6 +106,10 @@ void SearchEngine::thread_working(const SearchEngine& se, size_t begin, size_t e
 }
 
 
+//! Поиск, осуществляющийся для одного рассматриваемого файла
+//! \param fileName имя рассматриваемого файла
+//! \param patt паттерн, который нужно найти
+//! \return объекты класса FindPattern
 std::vector<FindPattern> SearchEngine::SearchInFile(const std::string& fileName, const std::string& patt) {
     std::vector<FindPattern> curr_result;                                   // найденный pattern-ы в текущем файле
 
@@ -122,6 +134,8 @@ std::vector<FindPattern> SearchEngine::SearchInFile(const std::string& fileName,
     return curr_result;
 }
 
+//! Получение всех файлов, в которых нужно поискать pattern
+//! \return пары вида (имя файла, размер файла)
 std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles() const {
     std::vector<std::pair<std::string, size_t>> all_files_;                 // результат
     std::deque<std::string> dirs;                                           // заводим очередь с папк-ой / -ами
@@ -159,9 +173,13 @@ std::vector<std::pair<std::string, size_t>> SearchEngine::getAllFiles() const {
     return all_files_;
 }
 
+
+//! Префикс-функция для поиска pattern в строке
+//! \param pr_line строка для поиска + pattern
+//! \return
 std::vector<int> SearchEngine::prefixFunction(const std::string &pr_line) {
     size_t len = pr_line.length();
-    std::vector<int> pi(len);                                                                   // результат префикс-функции
+    std::vector<int> pi(len);                                                                 // результат префикс-функции
     for (int i = 1; i < len; ++i) {
         int j = pi[i - 1];
         while (j > 0 && pr_line[i] != pr_line[j]) j = pi[j - 1];
